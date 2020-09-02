@@ -1,0 +1,38 @@
+
+.product-form {
+    width: 20rem;
+    max-width: 90%;
+    margin: auto;
+}
+
+.form-control {
+    margin: 1rem 0;
+}
+
+.form-control label,
+.form-control input {
+    margin: 5px 0;
+    display:block;
+    width: 100%;
+}
+
+.form-control input {
+    border: 1px solid purple;
+    font: inherit;
+    border-radius: 4px;
+}
+
+button {
+    font: inherit;
+    border: 1px solid purple;
+    padding: 5px 10px;
+    color: purple;
+    background: white;
+    border-radius: 4px;
+}
+
+button:hover,
+button:active {
+    background: purple;
+    color: white;
+}
