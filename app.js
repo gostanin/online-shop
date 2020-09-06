@@ -4,28 +4,27 @@ const bodyParser = require('body-parser');
 
 const app = express(); // valid request listener
 
-app.set('view engine', 'pug');
+app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-const adminData = require('./routes/admin');
-const userRouters = require('./routes/shop')
+const adminRoutes = require('./routes/admin');
+const userRoutes = require('./routes/shop')
+const errorController = require('./controllers/error');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 //request, response, next(function on a list)
 //order of a middle ware is important
 
-app.use('/admin', adminData.routes);
-app.use(userRouters);
+app.use('/admin', adminRoutes);
+app.use(userRoutes);
 
 
 
-app.use((req, res, next) => {
-    res.status(404).render('404', {title: 'Page Not Found'});
-})
+app.use(errorController.get404)
 
 // const server = http.createServer(app); //ctrl+shift+space
 
 // server.listen(8080);
 
-app.listen(8080);
+app.listen(3000);
