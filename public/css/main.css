@@ -19,6 +19,10 @@ form {
   display: inline;
 }
 
+.center {
+  margin: 20px 100px;
+}
+
 .main-header {
   width: 100%;
   height: 3.5rem;
