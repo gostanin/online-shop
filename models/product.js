@@ -4,6 +4,7 @@ const { v1: uuidv1 } = require('uuid');
 
 const rootdir = require('../utils/path');
 
+
 const filepath = path.join(rootdir, 'data', 'products.json');
 
 const getProductsFromFile = (cb) => {
