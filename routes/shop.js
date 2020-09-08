@@ -11,10 +11,15 @@ router.get('/', productsController.getIndex);
 
 router.get('/products', productsController.getProducts);
 
+router.get('/products/:id', productsController.getProduct); // order sensetive product/delete after this route wouldn't be executed
+
 router.get('/cart', productsController.getCart);
+
+router.post('/cart', productsController.postCart);
 
 router.get('/checkout', productsController.getCheckout);
 
 router.get('/orders', productsController.getOrders);
+
 
 module.exports = router;
