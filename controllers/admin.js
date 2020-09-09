@@ -19,9 +19,7 @@ exports.getEditProduct = (req, res, next) => {
 };
 
 exports.postEditProduct = (req, res, next) => {
-    console.log(req.query);
-    console.log(req.query.id);
-    const product = new Product(req.query.id, req.body.title, req.body.price, req.body.description, req.body.imageUrl);
+    const product = new Product(req.body.id, req.body.title, req.body.price, req.body.description, req.body.imageUrl);
     product.save();
     res.redirect('/admin/products');
 }
