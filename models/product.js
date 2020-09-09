@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { v1: uuidv1 } = require('uuid');
 
+const Cart = require('./cart');
 const rootdir = require('../utils/path');
 
 
@@ -50,6 +51,8 @@ module.exports = class Product {
 
     static delete(id) {
         getProductsFromFile(products => {
+            const product = products.find(product => product.id === id);
+            Cart.deleteProduct(id, product.price);
             const updatedProducts = products.filter(product => product.id !== id);
             fs.writeFile(filepath, JSON.stringify(updatedProducts), (error) => {
                 console.log(error);
