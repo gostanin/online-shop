@@ -39,14 +39,7 @@ module.exports = class Product {
     }
 
     static delete(id) {
-        getProductsFromFile(products => {
-            const product = products.find(product => product.id === id);
-            Cart.deleteProduct(id, product.price);
-            const updatedProducts = products.filter(product => product.id !== id);
-            fs.writeFile(filepath, JSON.stringify(updatedProducts), (error) => {
-                console.log(error);
-            });
-        })
+        return db.execute(`delete from products where id = ${id}`)
     }
 
     static findById(id) {
