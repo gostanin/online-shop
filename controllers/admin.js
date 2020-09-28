@@ -20,7 +20,7 @@ exports.getEditProduct = (req, res, next) => {
 
 exports.postEditProduct = (req, res, next) => {
     const product = new Product(req.body.id, req.body.title, req.body.price, req.body.description, req.body.imageUrl);
-    product.save();
+    product.save().catch(error => console.log(error));
     res.redirect('/admin/products');
 }
 

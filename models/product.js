@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const { v1: uuidv1 } = require('uuid');
 
 const db = require('../utils/database');
 
@@ -31,20 +30,8 @@ module.exports = class Product {
     }
 
     save() {
-        getProductsFromFile((products) => {
-            const updatedProducts = [...products];
-            if (this.id) {
-                const existingProductIndex = products.findIndex(product => product.id === this.id);
-                updatedProducts[existingProductIndex] = this;
-            } else {
-                this.id = uuidv1();
-                console.log(updatedProducts);
-                updatedProducts.push(this);
-            }
-            fs.writeFile(filepath, JSON.stringify(updatedProducts), (error) => {
-                console.log(error);
-            });
-        });
+        return db.execute(`insert into products(title, price, description, imageUrl)
+                           values('${this.title}', ${this.price}, '${this.description}', '${this.imageUrl}')`);
     }
 
     static fetchAll() {
