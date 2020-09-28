@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const { v1: uuidv1 } = require('uuid');
 
+const db = require('../utils/database');
+
 const Cart = require('./cart');
 const rootdir = require('../utils/path');
 
@@ -45,8 +47,8 @@ module.exports = class Product {
         });
     }
 
-    static fetchAll(cb) {
-        getProductsFromFile(cb);
+    static fetchAll() {
+        return db.execute('select * from products');
     }
 
     static delete(id) {
@@ -60,10 +62,7 @@ module.exports = class Product {
         })
     }
 
-    static findById(id, cb) {
-        getProductsFromFile((products) => {
-            const product = products.find((p) => p.id === id);
-            cb(product);
-        });
+    static findById(id) {
+        return db.execute(`select * from products where id = ${id}`)
     }
 };
