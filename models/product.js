@@ -30,8 +30,8 @@ module.exports = class Product {
     }
 
     save() {
-        return db.execute(`insert into products(title, price, description, imageUrl)
-                           values('${this.title}', ${this.price}, '${this.description}', '${this.imageUrl}')`);
+        return db.execute('insert into products(title, price, description, imageUrl) values(?, ?, ?, ?)', 
+                            [this.title, this.price, this.description, this.imageUrl]);
     }
 
     static fetchAll() {
@@ -39,10 +39,10 @@ module.exports = class Product {
     }
 
     static delete(id) {
-        return db.execute(`delete from products where id = ${id}`)
+        return db.execute(`delete from products where id = ?`, [id])
     }
 
     static findById(id) {
-        return db.execute(`select * from products where id = ${id}`)
+        return db.execute(`select * from products where id = ?`, [id])
     }
 };
