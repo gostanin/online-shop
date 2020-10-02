@@ -13,6 +13,8 @@ const errorController = require('./controllers/error');
 const sequelize = require('./utils/database');
 const Product = require('./models/product');
 const User = require('./models/user');
+const Cart = require('./models/cart');
+const CartItem = require('./models/cart-item');
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -40,14 +42,18 @@ app.use(errorController.get404)
 
 Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 User.hasMany(Product);
+User.hasOne(Cart);
+Cart.belongsTo(User);
+Cart.belongsToMany(Product, { through: CartItem });
+Product.belongsToMany(Cart, { through: CartItem });
 
-sequelize.sync()
+sequelize.sync({forced: true})
     .then(() => {
         return User.findByPk(1);
     })
     .then(user => {
-        if(!user) {
-            return User.create({name: 'Admin', email: 'test@test.com'});
+        if (!user) {
+            return User.create({ name: 'Admin', email: 'test@test.com' });
         }
         return user; //Promise.resolve(user) not need to use becaues then block automatically wraps return statmenet into Promise;
     })
