@@ -3,14 +3,14 @@
 <body>
     <%- include('../includes/navigation.ejs') %>
     <main>
-        <% if (cart.length > 0) { %>
+        <% if (products.length > 0) { %>
         <ul>
-            <% cart.forEach(cartItem => { %>
+            <% products.forEach(product => { %>
             <li style="list-style-type: none">
                 <div class="card product-item" style="padding: 10px 20px">
-                    <p><%= cartItem.product.title %> (<%= cartItem.qty %>) - $<%= cartItem.price %></p>
+                    <p><%= product.title %> (<%= product.cartItem.quantity %>) - $<%= product.price %></p>
                     <form action="/cart-delete-item" method="POST">
-                        <input type="hidden" name="id" value="<%= cartItem.product.id %>">
+                        <input type="hidden" name="id" value="<%= product.id %>">
                         <button class="btn" type="submit">Delete</button>
                     </form>
                 </div> 
