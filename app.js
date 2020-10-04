@@ -47,7 +47,8 @@ Cart.belongsTo(User);
 Cart.belongsToMany(Product, { through: CartItem });
 Product.belongsToMany(Cart, { through: CartItem });
 
-sequelize.sync({forced: true})
+// {force:true}
+sequelize.sync()
     .then(() => {
         return User.findByPk(1);
     })
@@ -56,6 +57,9 @@ sequelize.sync({forced: true})
             return User.create({ name: 'Admin', email: 'test@test.com' });
         }
         return user; //Promise.resolve(user) not need to use becaues then block automatically wraps return statmenet into Promise;
+    })
+    .then(user => {
+        return user.createCart();
     })
     .then(() => {
         app.listen(3000);
