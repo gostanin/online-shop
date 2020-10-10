@@ -30,17 +30,24 @@ exports.getEditProduct = (req, res, next) => {
 };
 
 exports.postEditProduct = (req, res, next) => {
-    product = new Product(
-        req.body.title,
-        req.body.price,
-        req.body.description,
-        req.body.imageUrl,
-        req.body.id
-    );
-    product
-        .save()
-        .then(() => res.redirect("/admin/products")) // this then is a result from return product.save()
+    Product.findById(req.body.id)
+        .then((product) => {
+            product.title = req.body.title;
+            product.price = req.body.price;
+            product.description = req.body.description;
+            product.imageUrl = req.body.imageUrl;
+            return product.save();
+        })
+        .then((result) => {
+            res.redorect("/admin/products");
+        })
         .catch((error) => console.log(error));
+    product = new Product(
+        (title = req.body.title),
+        (price = req.body.price),
+        (description = req.body.description),
+        (imageUrl = req.body.imageUrl)
+    );
 };
 
 exports.postAddProduct = (req, res, next) => {
@@ -48,14 +55,13 @@ exports.postAddProduct = (req, res, next) => {
     price = req.body.price;
     description = req.body.description;
     imageUrl = req.body.imageUrl;
-    product = new Product(
-        title,
-        price,
-        description,
-        imageUrl,
-        null,
-        req.user._id
-    );
+    product = new Product({
+        title: req.body.title,
+        price: req.body.price,
+        description: req.body.description,
+        imageUrl: req.body.imageUrl,
+        userId: req.user,
+    });
     product
         .save()
         .then(res.redirect("/admin/products"))
@@ -63,7 +69,9 @@ exports.postAddProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-    Product.fetchAll()
+    Product.find()
+        // .select('title price -_id') get title, price field but not _id
+        // .populate('userId', 'name') get users for given userid and get only name field
         .then((products) =>
             res.render("admin/product-list", {
                 products: products,
@@ -77,5 +85,5 @@ exports.getProducts = (req, res, next) => {
 exports.deleteProduct = (req, res, next) => {
     const id = req.body.id;
     console.log(id);
-    Product.deleteById(id).then(() => res.redirect("/admin/products"));
+    Product.findByIdAndRemove(id).then(() => res.redirect("/admin/products"));
 };
