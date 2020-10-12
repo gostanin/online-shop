@@ -13,8 +13,10 @@ const userSchema = Schema({
     },
     password: {
         type: String,
-        required: true
+        required: true,
     },
+    resetToken: String,
+    resetTokenExp: Date,
     cart: {
         items: [
             {
