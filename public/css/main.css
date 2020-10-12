@@ -19,8 +19,11 @@ form {
     display: inline;
 }
 
-.center {
-    margin: 20px 100px;
+.centered {
+    margin-top: 2rem;
+    width: 100%;
+    text-align: center;
+    display: inline-block;
 }
 
 .main-header {
