@@ -32,22 +32,18 @@ exports.getEditProduct = (req, res, next) => {
 exports.postEditProduct = (req, res, next) => {
     Product.findById(req.body.id)
         .then((product) => {
-            product.title = req.body.title;
-            product.price = req.body.price;
-            product.description = req.body.description;
-            product.imageUrl = req.body.imageUrl;
-            return product.save();
+            if (product.userId.toString() === req.user._id.toString()) {
+                product.title = req.body.title;
+                product.price = req.body.price;
+                product.description = req.body.description;
+                product.imageUrl = req.body.imageUrl;
+                return product.save();
+            }
         })
         .then((result) => {
-            res.redorect("/admin/products");
+            res.redirect("/admin/products");
         })
         .catch((error) => console.log(error));
-    product = new Product(
-        (title = req.body.title),
-        (price = req.body.price),
-        (description = req.body.description),
-        (imageUrl = req.body.imageUrl)
-    );
 };
 
 exports.postAddProduct = (req, res, next) => {
@@ -69,21 +65,22 @@ exports.postAddProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-    Product.find()
+    Product.find({ userId: req.user._id })
         // .select('title price -_id') get title, price field but not _id
         // .populate('userId', 'name') get users for given userid and get only name field
-        .then((products) =>
+        .then((products) => {
             res.render("admin/product-list", {
                 products: products,
                 title: "All products",
                 path: "/admin/products",
-            })
-        )
+            });
+        })
         .catch((error) => console.log(error));
 };
 
 exports.deleteProduct = (req, res, next) => {
     const id = req.body.id;
-    console.log(id);
-    Product.findByIdAndRemove(id).then(() => res.redirect("/admin/products"));
+    Product.findOneAndDelete({ _id: id, userId: req.user._id }).then(() =>
+        res.redirect("/admin/products")
+    );
 };
