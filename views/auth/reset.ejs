@@ -1,0 +1,19 @@
+<%- include('../includes/head.ejs') %>
+
+<body>
+    <%- include('../includes/navigation.ejs') %>
+    <main>
+        <% if (successMsg.length > 0) { %>
+        <div class="user-message"><%= successMsg %></div>
+        <% } %>
+        <form class="login-form" action="/reset" method="POST">
+            <div class="form-control">
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email">
+            </div>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="btn" type="submit">Send</button>
+        </form>
+    </main>
+</body>
+<%- include('../includes/end.ejs') %>
