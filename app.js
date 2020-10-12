@@ -1,8 +1,10 @@
 const path = require("path");
 const express = require("express");
+const csrf = require("csurf");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const session = require("express-session");
+const flash = require("connect-flash");
 const MondoDBStore = require("connect-mongodb-session")(session);
 const dotenv = require("dotenv");
 dotenv.config();
@@ -22,6 +24,8 @@ const authRoutes = require("./routes/auth");
 const errorController = require("./controllers/error");
 const User = require("./models/user");
 
+const csrfProtection = csrf();
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
@@ -33,6 +37,9 @@ app.use(
         // unset: "destroy",
     })
 );
+
+app.use(csrfProtection);
+app.use(flash());
 
 app.use((req, res, next) => {
     if (!req.session.user) {
@@ -47,6 +54,12 @@ app.use((req, res, next) => {
 });
 //request, response, next(function on a list)
 //order of a middle ware is important
+
+app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.session.isLoggedIn;
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
 
 app.use("/admin", adminRoutes);
 app.use(userRoutes);
@@ -64,15 +77,6 @@ mongoose
         { useUnifiedTopology: true, useNewUrlParser: true }
     )
     .then((result) => {
-        User.findOne().then((user) => {
-            if (!user) {
-                const user = new User({
-                    name: "Admin",
-                    email: "test@test.com",
-                });
-                user.save();
-            }
-        });
         app.listen(3000);
     })
     .catch((error) => console.log(error));
