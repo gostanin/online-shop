@@ -12,9 +12,11 @@ const MondoDBStore = require("connect-mongodb-session")(session);
 const dotenv = require("dotenv");
 dotenv.config();
 
+const DB_URL = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dpwzp.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
+
 const app = express(); // valid request listener
 const store = new MondoDBStore({
-    uri: `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PSW}@cluster0.dpwzp.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`,
+    uri: DB_URL,
     collection: "sessions",
 });
 
@@ -75,10 +77,7 @@ app.use(errorController.get404);
 // server.listen(8080);
 
 mongoose
-    .connect(
-        `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dpwzp.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`,
-        { useUnifiedTopology: true, useNewUrlParser: true }
-    )
+    .connect(DB_URL, { useUnifiedTopology: true, useNewUrlParser: true })
     .then((result) => {
         app.listen(3000);
     })
