@@ -18,17 +18,25 @@ const transport = nodemailer.createTransport({
 });
 
 exports.getLogin = (req, res, next) => {
+    const errors = req.flash("error")[0];
     res.render("auth/login", {
         path: "/login",
         title: "Login",
-        errorMsg: req.flash("error"),
+        errorMsg: errors,
     });
 };
 
 exports.postLogin = (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
-    if (email && password) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).render("auth/login", {
+            path: "/login",
+            title: "Login",
+            errorMsg: errors.array()[0].msg,
+        });
+    } else {
         User.findOne({ email: email })
             .then((user) => {
                 if (user && bcrypt.compareSync(password, user.password)) {
@@ -46,9 +54,6 @@ exports.postLogin = (req, res, next) => {
                 console.log(error);
                 res.redirect("/login");
             });
-    } else {
-        req.flash("error", "Email and password required");
-        res.redirect("/login");
     }
 };
 
@@ -63,12 +68,14 @@ exports.postSignup = (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
     const errors = validationResult(req);
-    console.log(errors.array()[0]);
+    console.log(errors);
     if (!errors.isEmpty()) {
         return res.status(422).render("auth/signup", {
             path: "/signup",
             title: "Signup",
             errorMsg: errors.array()[0],
+            signupData: { email: email, password: password },
+            invalidField: errors.array(),
         });
     } else {
         bcrypt
@@ -95,10 +102,13 @@ exports.postSignup = (req, res, next) => {
 };
 
 exports.getSignup = (req, res, next) => {
+    const errors = validationResult(req);
     res.render("auth/signup", {
         path: "/signup",
         title: "Signup",
-        errorMsg: req.flash("error"),
+        errorMsg: errors.array()[0],
+        signupData: { email: "", password: "" },
+        invalidField: [],
     });
 };
 

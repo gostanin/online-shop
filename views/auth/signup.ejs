@@ -4,17 +4,19 @@
     <%- include('../includes/navigation.ejs') %>
 
     <main>
-        <% if (errorMsg.length > 0) { %>
-        <div class="user-message user-message--error"><%= errorMsg %></div>
+        <% if (errorMsg) { %>
+        <div class="user-message user-message--error"><%= errorMsg.msg %></div>
         <% } %>
         <form class="login-form" action="/signup" method="POST">
             <div class="form-control">
                 <label for="email">E-Mail</label>
-                <input type="email" name="email" id="email">
+                <input class="<%= invalidField.find(error => error.param == 'email') ? 'invalid' : '' %>"
+                    type="email" name="email" id="email" value="<%= signupData.email %>">
             </div>
             <div class="form-control">
                 <label for="password">Password</label>
-                <input type="password" name="password" id="password">
+                <input class="<%= invalidField.find(error => error.param == 'password') ? 'invalid' : '' %>"
+                    type="password" name="password" id="password" value="<%= signupData.password %>">
             </div>
             <div class="form-control">
                 <label for="confirmPassword">Confirm Password</label>
