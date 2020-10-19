@@ -177,6 +177,8 @@ form {
 
 .card__actions {
     padding: 1rem;
+    margin-top: auto;
+    align-self: center;
     text-align: center;
 }
 
