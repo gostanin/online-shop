@@ -32,6 +32,7 @@ exports.getEditProduct = (req, res, next) => {
             res.render("admin/edit-product", {
                 ...editProductData,
                 product: product,
+                errors: [],
             });
         })
         .catch((error) => next(error));
