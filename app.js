@@ -47,30 +47,38 @@ app.use(csrfProtection);
 app.use(flash());
 
 app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.session.isLoggedIn;
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
+
+app.use((req, res, next) => {
     if (!req.session.user) {
         return next();
     }
     User.findById(req.session.user._id)
         .then((user) => {
+            console.log(user);
+            if (!user) {
+                throw new Error("User is not found");
+            }
             req.user = user;
             next();
         })
-        .catch((error) => console.log(error));
+        .catch((error) => next(error));
 });
 //request, response, next(function on a list)
 //order of a middle ware is important
-
-app.use((req, res, next) => {
-    res.locals.isAuthenticated = req.session.isLoggedIn;
-    res.locals.csrfToken = req.csrfToken();
-    next();
-});
 
 app.use("/admin", adminRoutes);
 app.use(userRoutes);
 app.use(authRoutes);
 
 app.use(errorController.get404);
+
+app.use((error, req, res, next) => {
+    res.status(500).render("500", { title: "Internal error", path: "" });
+});
 
 // const server = http.createServer(app); //ctrl+shift+space
 
