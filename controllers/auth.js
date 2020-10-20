@@ -17,13 +17,14 @@ const transport = nodemailer.createTransport({
     },
 });
 
+const loginData = {
+    path: "/login",
+    title: "Login",
+};
+
 exports.getLogin = (req, res, next) => {
     const errors = req.flash("error")[0];
-    res.render("auth/login", {
-        path: "/login",
-        title: "Login",
-        errorMsg: errors,
-    });
+    res.render("auth/login", { ...loginData, errorMsg: errors });
 };
 
 exports.postLogin = (req, res, next) => {
@@ -32,43 +33,32 @@ exports.postLogin = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(422).render("auth/login", {
-            path: "/login",
-            title: "Login",
+            ...loginData,
             errorMsg: errors.array()[0].msg,
         });
-    } else {
-        User.findOne({ email: email })
-            .then((user) => {
-                if (user && bcrypt.compareSync(password, user.password)) {
-                    req.session.user = user;
-                    req.session.isLoggedIn = true;
-                    return req.session.save();
-                }
-                req.flash("error", "Invalid email or password");
-                throw "Invalid";
-            })
-            .then((result) => {
-                res.redirect("/");
-            })
-            .catch((error) => {
-                console.log(error);
-                res.redirect("/login");
-            });
     }
+    User.findOne({ email: email })
+        .then((user) => {
+            if (!user) {
+                throw new Error("User is not found");
+            }
+            if (bcrypt.compareSync(password, user.password)) {
+                req.session.user = user;
+                req.session.isLoggedIn = true;
+                return req.session.save().then((result) => res.redirect("/"));
+            }
+            req.flash("error", "Invalid email or password");
+            return res.redirect("/login");
+        })
+        .catch((error) => next(error));
 };
 
 exports.getLogout = (req, res, next) => {
-    req.session.destroy((error) => {
-        console.log(error);
-        res.redirect("/");
-    });
+    req.session.destroy((error) => next(error));
 };
 
 exports.postSignup = (req, res, next) => {
-    const email = req.body.email;
-    const password = req.body.password;
     const errors = validationResult(req);
-    console.log(errors);
     if (!errors.isEmpty()) {
         return res.status(422).render("auth/signup", {
             path: "/signup",
@@ -77,28 +67,29 @@ exports.postSignup = (req, res, next) => {
             signupData: { email: email, password: password },
             invalidField: errors.array(),
         });
-    } else {
-        bcrypt
-            .hash(password, 12)
-            .then((hashedPassword) => {
-                const user = new User({
-                    name: "default",
-                    email: email,
-                    password: hashedPassword,
-                });
-                return user.save();
-            })
-            .then((result) => {
-                transport.sendMail({
-                    to: email,
-                    from: "shop@shop.com",
-                    subject: "Signup succeeded!",
-                    html: "<h1> Sucessfully sighed up </h1>",
-                });
-                res.redirect("/login");
-            })
-            .catch((error) => console.log(error));
     }
+    const email = req.body.email;
+    const password = req.body.password;
+    bcrypt
+        .hash(password, 12)
+        .then((hashedPassword) => {
+            const user = new User({
+                name: "default",
+                email: email,
+                password: hashedPassword,
+            });
+            return user.save();
+        })
+        .then((result) => {
+            transport.sendMail({
+                to: email,
+                from: "shop@shop.com",
+                subject: "Signup succeeded!",
+                html: "<h1> Sucessfully sighed up </h1>",
+            });
+            res.redirect("/login");
+        })
+        .catch((error) => next(error));
 };
 
 exports.getSignup = (req, res, next) => {
@@ -146,10 +137,9 @@ exports.postReset = (req, res, next) => {
                     req.flash("success", "Email has been sent");
                     res.redirect("/reset");
                 })
-                .catch((error) => console.log(error));
+                .catch((error) => next(error));
         } else {
-            console.log(error);
-            return res.redirect("/reset");
+            throw new Error("crypto function number generation failed");
         }
     });
 };
@@ -158,19 +148,18 @@ exports.getNewPasswords = (req, res, next) => {
     const token = req.params.token;
     User.findOne({ resetToken: token, resetTokenExp: { $gt: Date.now() } })
         .then((user) => {
-            if (user) {
-                res.render("auth/new-password", {
-                    path: "/new-password",
-                    title: "Update password",
-                    id: user._id.toString(),
-                    token: token,
-                    errorMsg: req.flash("error"),
-                });
-            } else {
+            if (!user) {
                 res.redirect("/");
             }
+            res.render("auth/new-password", {
+                path: "/new-password",
+                title: "Update password",
+                id: user._id.toString(),
+                token: token,
+                errorMsg: req.flash("error"),
+            });
         })
-        .catch((error) => console.log(error));
+        .catch((error) => next(error));
 };
 
 exports.postNewPassword = (req, res, next) => {
@@ -178,7 +167,6 @@ exports.postNewPassword = (req, res, next) => {
     const confirmPassword = req.body.confirmPassword;
     const userId = req.body.id;
     const token = req.body.token;
-    console.log(userId, token);
     if (password === confirmPassword) {
         return User.updateOne(
             {
@@ -197,10 +185,9 @@ exports.postNewPassword = (req, res, next) => {
             }
         )
             .then((result) => {
-                console.log(result);
                 res.redirect("/login");
             })
-            .catch((error) => console.log(error));
+            .catch((error) => next(error));
     } else {
         req.flash("error", "Passwords do not match");
         res.redirect(`/reset/${token}`);

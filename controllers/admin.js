@@ -2,13 +2,20 @@ const { validationResult } = require("express-validator");
 
 const Product = require("../models/product");
 
+const editProductData = {
+    title: "Edit product",
+    path: "/admin/edit-product",
+    editing: true,
+};
+
+const addProductData = {
+    title: "Add product",
+    path: "/admin/add-product",
+    editing: false,
+};
+
 exports.getAddProduct = (req, res, next) => {
-    res.render("admin/edit-product", {
-        title: "Add product",
-        path: "/admin/add-product",
-        editing: false,
-        errors: [],
-    });
+    res.render("admin/edit-product", { ...addProductData, errors: [] });
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -20,17 +27,14 @@ exports.getEditProduct = (req, res, next) => {
     Product.findById(id)
         .then((product) => {
             if (!product) {
-                return res.redirect("/");
+                throw new Error("Product is not found");
             }
             res.render("admin/edit-product", {
-                title: "Edit product",
-                path: "/admin/edit-product",
-                editing: editMode,
+                ...editProductData,
                 product: product,
-                errors: [],
             });
         })
-        .catch((error) => console.log(error));
+        .catch((error) => next(error));
 };
 
 exports.postEditProduct = (req, res, next) => {
@@ -38,11 +42,12 @@ exports.postEditProduct = (req, res, next) => {
 
     Product.findById(req.body.id)
         .then((product) => {
+            if (!product) {
+                throw new Error("Product is not found");
+            }
             if (!errors.isEmpty()) {
                 return res.status(422).render("admin/edit-product", {
-                    title: "Edit product",
-                    path: "/admin/edit-product",
-                    editing: true,
+                    ...editProductData,
                     product: product,
                     errors: errors.array(),
                 });
@@ -52,29 +57,26 @@ exports.postEditProduct = (req, res, next) => {
                 product.price = req.body.price;
                 product.description = req.body.description;
                 product.imageUrl = req.body.imageUrl;
-                return product.save();
+                return product
+                    .save()
+                    .then((result) => res.redirect("/admin/products"));
             }
         })
-        .then((result) => {
-            res.redirect("/admin/products");
-        })
-        .catch((error) => console.log(error));
+        .catch((error) => next(error));
 };
 
 exports.postAddProduct = (req, res, next) => {
+    errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).render("admin/edit-product", {
+            ...addProductData,
+            errors: errors.array(),
+        });
+    }
     title = req.body.title;
     price = req.body.price;
     description = req.body.description;
     imageUrl = req.body.imageUrl;
-    errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(422).render("admin/edit-product", {
-            title: "Add product",
-            path: "/admin/add-product",
-            editing: false,
-            errors: errors.array(),
-        });
-    }
     product = new Product({
         title: req.body.title,
         price: req.body.price,
@@ -84,8 +86,8 @@ exports.postAddProduct = (req, res, next) => {
     });
     product
         .save()
-        .then(res.redirect("/admin/products"))
-        .catch((error) => console.log(error));
+        .then((result) => res.redirect("/admin/products"))
+        .catch((error) => next(error));
 };
 
 exports.getProducts = (req, res, next) => {
@@ -93,18 +95,21 @@ exports.getProducts = (req, res, next) => {
         // .select('title price -_id') get title, price field but not _id
         // .populate('userId', 'name') get users for given userid and get only name field
         .then((products) => {
+            if (!products) {
+                throw new Error("Products are not found");
+            }
             res.render("admin/product-list", {
                 products: products,
                 title: "All products",
                 path: "/admin/products",
             });
         })
-        .catch((error) => console.log(error));
+        .catch((error) => next(error));
 };
 
 exports.deleteProduct = (req, res, next) => {
     const id = req.body.id;
-    Product.findOneAndDelete({ _id: id, userId: req.user._id }).then(() =>
-        res.redirect("/admin/products")
-    );
+    Product.findOneAndDelete({ _id: id, userId: req.user._id })
+        .then((result) => res.redirect("/admin/products"))
+        .catch((error) => next(error));
 };
