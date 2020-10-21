@@ -2,8 +2,8 @@ const path = require("path");
 
 const express = require("express");
 const bodyParser = require("body-parser");
-const multer = require("multer");
 const mongoose = require("mongoose");
+const multer = require("multer");
 const csrf = require("csurf");
 const flash = require("connect-flash");
 
@@ -21,15 +21,6 @@ const store = new MondoDBStore({
     collection: "sessions",
 });
 
-app.set("view engine", "ejs");
-app.set("views", "views");
-
-const adminRoutes = require("./routes/admin");
-const userRoutes = require("./routes/shop");
-const authRoutes = require("./routes/auth");
-const errorController = require("./controllers/error");
-const User = require("./models/user");
-
 const csrfProtection = csrf();
 
 const fileStorage = multer.diskStorage({
@@ -37,7 +28,8 @@ const fileStorage = multer.diskStorage({
         cb(null, "images");
     },
     filename: (req, file, cb) => {
-        cb(null, new Date().toISOString + "-" + file.originalname);
+        filepath = file.fieldname + "-" + Date.now() + file.originalname;
+        cb(null, filepath);
     },
 });
 
@@ -53,6 +45,15 @@ const fileFilter = (req, file, cb) => {
     }
 };
 
+app.set("view engine", "ejs");
+app.set("views", "views");
+
+const adminRoutes = require("./routes/admin");
+const userRoutes = require("./routes/shop");
+const authRoutes = require("./routes/auth");
+const errorController = require("./controllers/error");
+const User = require("./models/user");
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
     multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
@@ -67,7 +68,6 @@ app.use(
         // unset: "destroy",
     })
 );
-
 app.use(csrfProtection);
 app.use(flash());
 
