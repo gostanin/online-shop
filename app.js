@@ -2,6 +2,7 @@ const path = require("path");
 
 const express = require("express");
 const bodyParser = require("body-parser");
+const multer = require("multer");
 const mongoose = require("mongoose");
 const csrf = require("csurf");
 const flash = require("connect-flash");
@@ -31,7 +32,31 @@ const User = require("./models/user");
 
 const csrfProtection = csrf();
 
+const fileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "images");
+    },
+    filename: (req, file, cb) => {
+        cb(null, new Date().toISOString + "-" + file.originalname);
+    },
+});
+
+const fileFilter = (req, file, cb) => {
+    if (
+        file.mimetype === "image/png" ||
+        file.mimetype === "image/jpg" ||
+        file.mimetype === "image/jpeg"
+    ) {
+        cb(null, true);
+    } else {
+        cb(null, false);
+    }
+};
+
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(
+    multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
+);
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
     session({
@@ -58,7 +83,6 @@ app.use((req, res, next) => {
     }
     User.findById(req.session.user._id)
         .then((user) => {
-            console.log(user);
             if (!user) {
                 throw new Error("User is not found");
             }
@@ -77,6 +101,7 @@ app.use(authRoutes);
 app.use(errorController.get404);
 
 app.use((error, req, res, next) => {
+    console.log(error);
     res.status(500).render("500", { title: "Internal error", path: "" });
 });
 
